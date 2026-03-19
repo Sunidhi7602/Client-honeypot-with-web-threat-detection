@@ -1,0 +1,145 @@
+.page { animation: fadeInUp 0.35s ease both; }
+
+.refreshBtn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 16px; background: var(--accent-blue-dim);
+  color: var(--accent-blue); border: 1px solid var(--border-strong);
+  border-radius: 3px; font-family: var(--font-body); font-size: 13px;
+  cursor: pointer; transition: all 0.15s;
+  .material-symbols-rounded { font-size: 16px; }
+  &:hover { background: var(--accent-blue); color: #fff; }
+}
+
+.statGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+  @media (max-width: 1100px) { grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: 600px)  { grid-template-columns: 1fr; }
+}
+
+.chartsRow {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 16px;
+  margin-bottom: 24px;
+  @media (max-width: 1000px) { grid-template-columns: 1fr; }
+}
+
+.areaCard, .donutCard {
+  div[class*="cardPad"] { padding: 20px; }
+}
+
+.bottomRow {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 16px;
+  @media (max-width: 1000px) { grid-template-columns: 1fr; }
+}
+
+.cardHeader {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 12px; margin-bottom: 16px; flex-wrap: wrap;
+  h2 { font-size: 16px; margin: 0; }
+}
+
+.cardSub { font-size: 12px; color: var(--text-muted); }
+
+/* ── Tooltip ── */
+.tooltip {
+  background: var(--bg-card); border: 1px solid var(--border-strong);
+  border-radius: 3px; padding: 10px 14px; font-family: var(--font-body);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+}
+.tooltipLabel { font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
+.tooltipRow { display: flex; justify-content: space-between; gap: 16px; font-size: 12px; font-weight: 600; }
+
+/* ── Live Feed ── */
+.feedCard { overflow: hidden; }
+.liveIndicator {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 11px; font-weight: 700; color: var(--safe-green);
+  letter-spacing: 0.08em; text-transform: uppercase;
+}
+.liveDot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--safe-green);
+  position: relative;
+  &::after {
+    content: ''; position: absolute; inset: -3px;
+    border-radius: 50%; background: var(--safe-green);
+    opacity: 0.4; animation: pingRing 1.5s ease infinite;
+  }
+}
+
+.feedList {
+  display: flex; flex-direction: column;
+  max-height: 340px; overflow-y: auto;
+}
+
+.feedRow {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; padding: 10px 16px;
+  border-bottom: 1px solid var(--border-table);
+  cursor: pointer; transition: background 0.12s;
+  &:hover { background: var(--accent-blue-dim); }
+  &:last-child { border-bottom: none; }
+}
+
+.feedUrl {
+  display: flex; align-items: center; gap: 6px; min-width: 0; flex: 1;
+}
+.feedUrlText {
+  font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.feedMeta {
+  display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+}
+.feedScore {
+  font-family: var(--font-mono); font-size: 12px; font-weight: 600; min-width: 24px; text-align: right;
+}
+.feedTime { font-size: 11px; color: var(--text-muted); }
+
+/* ── Heatmap ── */
+.heatmapCard {}
+.heatmap { font-family: var(--font-mono); font-size: 10px; }
+
+.heatmapAxis {
+  display: grid; grid-template-columns: 24px repeat(7, 1fr);
+  gap: 2px; margin-bottom: 4px; padding-left: 28px;
+  color: var(--text-muted);
+  span { text-align: center; }
+}
+
+.heatmapBody { display: flex; flex-direction: column; gap: 2px; }
+
+.heatmapRow {
+  display: grid; grid-template-columns: 24px repeat(7, 1fr);
+  gap: 2px; align-items: center;
+}
+
+.heatmapHour { color: var(--text-muted); text-align: right; padding-right: 4px; }
+
+.heatmapCell {
+  height: 10px; border-radius: 1px; cursor: default;
+  transition: transform 0.1s;
+  &:hover { transform: scale(1.4); z-index: 2; }
+}
+
+.heatmapLegend {
+  display: flex; align-items: center; gap: 8px; margin-top: 10px;
+  font-size: 10px; color: var(--text-muted);
+}
+
+.legendGradient {
+  flex: 1; height: 6px; border-radius: 2px;
+  background: linear-gradient(to right,
+    rgba(79,249,168,0.6),
+    rgba(249,168,79,0.6),
+    rgba(249,120,79,0.6),
+    rgba(249,79,109,0.8)
+  );
+}

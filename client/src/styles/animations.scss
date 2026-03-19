@@ -1,0 +1,118 @@
+/* ============================================================
+   HoneyScan — Global SCSS Animations
+   ============================================================ */
+
+/* ── scanPulse: expanding ring for active scan indicator ── */
+@keyframes scanPulse {
+  0%   { transform: scale(1);   opacity: 0.8; }
+  50%  { transform: scale(1.6); opacity: 0.3; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+
+/* ── criticalPulse: box-shadow glow for Critical badges ── */
+@keyframes criticalPulse {
+  0%   { box-shadow: 0 0 0 0 var(--threat-red-glow); }
+  50%  { box-shadow: 0 0 0 8px rgba(249, 79, 109, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(249, 79, 109, 0); }
+}
+
+/* ── logLine: terminal log entry entrance ── */
+@keyframes logLine {
+  0%   { transform: translateX(-8px); opacity: 0; }
+  100% { transform: translateX(0);    opacity: 1; }
+}
+
+/* ── meshShift: slow background mesh animation ── */
+@keyframes meshShift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* ── countUp: stat card number entrance ── */
+@keyframes countUp {
+  0%   { transform: translateY(12px); opacity: 0; }
+  100% { transform: translateY(0);    opacity: 1; }
+}
+
+/* ── slideInRight: live feed entry ── */
+@keyframes slideInRight {
+  0%   { transform: translateX(40px); opacity: 0; }
+  100% { transform: translateX(0);    opacity: 1; }
+}
+
+/* ── fadeInUp: general entrance ── */
+@keyframes fadeInUp {
+  0%   { transform: translateY(16px); opacity: 0; }
+  100% { transform: translateY(0);    opacity: 1; }
+}
+
+/* ── spinLoader ── */
+@keyframes spinLoader {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* ── gaugeNeedle: SVG needle sweep ── */
+@keyframes gaugeNeedle {
+  0%   { transform: rotate(-90deg); }
+  100% { transform: rotate(var(--needle-angle, 0deg)); }
+}
+
+/* ── barGrow: horizontal bar chart fill ── */
+@keyframes barGrow {
+  0%   { width: 0; }
+  100% { width: var(--bar-width, 100%); }
+}
+
+/* ── pingRing: scan active outer ring ── */
+@keyframes pingRing {
+  75%, 100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+/* ── stepGlow: scanner stepper active step ── */
+@keyframes stepGlow {
+  0%, 100% { box-shadow: 0 0 8px var(--accent-blue-glow); }
+  50%       { box-shadow: 0 0 20px var(--accent-blue-glow), 0 0 40px var(--accent-blue-dim); }
+}
+
+/* ── toastSlideUp: toast notification entrance ── */
+@keyframes toastSlideUp {
+  0%   { transform: translateY(20px); opacity: 0; }
+  100% { transform: translateY(0);    opacity: 1; }
+}
+
+/* ── toastProgress: toast auto-dismiss bar ── */
+@keyframes toastProgress {
+  from { width: 100%; }
+  to   { width: 0; }
+}
+
+/* ── chartMount: recharts line draw-in ── */
+@keyframes chartMount {
+  0%   { opacity: 0; transform: scaleX(0); transform-origin: left; }
+  100% { opacity: 1; transform: scaleX(1); }
+}
+
+/* ── networkRowFlash: flagged network request highlight ── */
+@keyframes networkRowFlash {
+  0%   { background: var(--threat-red-dim); }
+  50%  { background: rgba(249, 79, 109, 0.08); }
+  100% { background: var(--threat-red-dim); }
+}
+
+/* ── Shared animation utility classes ── */
+.anim-fade-in-up {
+  animation: fadeInUp 0.4s ease both;
+}
+
+.anim-slide-right {
+  animation: slideInRight 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.anim-count-up {
+  animation: countUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}

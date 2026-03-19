@@ -1,0 +1,146 @@
+.page { animation: fadeInUp 0.35s ease both; }
+
+/* ── Sticky Header ── */
+.stickyHeader {
+  position: sticky; top: 0; z-index: 50;
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 0 16px; background: var(--bg-base);
+  border-bottom: 1px solid var(--border); margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+.backBtn {
+  display: flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px; background: var(--bg-card);
+  border: 1px solid var(--border); border-radius: 3px; cursor: pointer; color: var(--text-secondary);
+  &:hover { color: var(--accent-blue); border-color: var(--accent-blue); }
+  .material-symbols-rounded { font-size: 18px; }
+}
+.headerUrl { display: flex; align-items: center; gap: 6px; flex: 1; min-width: 0; }
+.urlText { font-family: var(--font-mono); font-size: 13px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.headerMeta { display: flex; align-items: center; gap: 10px; }
+.timestamp  { font-size: 12px; color: var(--text-muted); }
+
+/* ── Layout grid ── */
+.grid { display: grid; grid-template-columns: 320px 1fr; gap: 20px; align-items: start;
+  @media (max-width: 960px) { grid-template-columns: 1fr; } }
+
+/* ── Gauge ── */
+.gaugeSection { display: flex; flex-direction: column; gap: 16px; }
+.gaugeCard {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 2px; padding: 24px;
+  display: flex; flex-direction: column; align-items: center;
+}
+.gaugeWrap { display: flex; flex-direction: column; align-items: center; }
+.gaugeScore { font-family: var(--font-heading); font-size: 48px; font-weight: 400; line-height: 1; margin-top: -10px; }
+.gaugeLabel { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 4px; }
+
+.actionCard {
+  background: var(--bg-card); border: 1px solid var(--border); border-left: 3px solid var(--warn-amber); border-radius: 2px; padding: 18px;
+}
+.actionHeader { display: flex; align-items: center; gap: 8px; font-family: var(--font-heading); font-size: 14px; color: var(--warn-amber); margin-bottom: 10px;
+  .material-symbols-rounded { font-size: 18px; } }
+.actionText { font-size: 13px; color: var(--text-secondary); line-height: 1.55; margin-bottom: 14px; }
+.scanMeta { display: flex; flex-direction: column; gap: 6px; border-top: 1px solid var(--border); padding-top: 12px; }
+.metaRow { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); }
+.metaVal { color: var(--text-primary); font-family: var(--font-mono); }
+.statusBadge { color: var(--safe-green); text-transform: uppercase; }
+
+/* ── Section headers ── */
+.sectionHeader {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;
+  .material-symbols-rounded { font-size: 20px; color: var(--accent-blue); }
+  h2 { font-size: 16px; margin: 0; flex: 1; }
+}
+
+.signalSection, .iocSection, .redirectSection, .networkSection, .domSection {
+  grid-column: 1/-1;
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 2px; padding: 20px;
+}
+
+/* ── Signal bars ── */
+.signalBars { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+.sigRow {
+  display: grid; grid-template-columns: 150px 1fr 100px;
+  align-items: center; gap: 12px;
+  animation: fadeInUp 0.4s ease both;
+}
+.sigName { font-size: 12px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sigBar  { height: 8px; background: var(--bg-base); border-radius: 2px; overflow: hidden; }
+.sigFill {
+  height: 100%; border-radius: 2px;
+  width: var(--bar-width, 0%);
+  animation: barGrow 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.sigNums { display: flex; justify-content: flex-end; gap: 10px; font-family: var(--font-mono); font-size: 11px; }
+.rawVal    { color: var(--text-muted); }
+.contribVal{ font-weight: 600; }
+
+/* ── IoC Table ── */
+.iocControls { display: flex; gap: 8px; margin-left: auto; }
+.iocSearch, .iocSort {
+  padding: 6px 10px; background: var(--bg-input); border: 1px solid var(--border); border-radius: 3px;
+  font-size: 12px; color: var(--text-primary); outline: none;
+  &:focus { border-color: var(--accent-blue); }
+}
+.iocTableWrap { overflow-x: auto; }
+.iocTable {
+  width: 100%; border-collapse: collapse;
+  th { padding: 8px 12px; text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); border-bottom: 1px solid var(--border-table); background: var(--bg-base); }
+  td { padding: 9px 12px; border-bottom: 1px solid var(--border-table); font-size: 12px; vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--accent-blue-dim); }
+}
+.iocType  { font-family: var(--font-mono); font-size: 11px; background: var(--bg-base); padding: 2px 6px; border-radius: 2px; color: var(--accent-blue); border: 1px solid var(--border); }
+.iocValue { font-family: var(--font-mono); font-size: 11.5px; color: var(--text-secondary); word-break: break-all; }
+.confBar  { display: flex; align-items: center; gap: 6px; }
+.confFill { height: 5px; border-radius: 2px; transition: width 0.5s ease; flex-shrink: 0; min-width: 40px; }
+.vtResult { font-family: var(--font-mono); font-size: 12px; font-weight: 700; }
+.monoSm   { font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); }
+.iocActions { display: flex; gap: 4px; }
+.iocBtn {
+  background: none; border: 1px solid var(--border); border-radius: 3px; padding: 4px; cursor: pointer; color: var(--text-muted);
+  display: flex; transition: all 0.12s;
+  .material-symbols-rounded { font-size: 14px; }
+  &:hover { color: var(--accent-blue); border-color: var(--accent-blue); }
+  &:disabled { opacity: 0.4; cursor: not-allowed; }
+}
+.vtBtn:hover { color: var(--warn-amber) !important; border-color: var(--warn-amber) !important; }
+
+/* ── Redirect Chain ── */
+.redirectChain { display: flex; align-items: center; gap: 0; overflow-x: auto; padding: 12px 0; flex-wrap: nowrap; }
+.redirectNode {
+  flex-shrink: 0; min-width: 160px; padding: 12px 14px;
+  background: var(--bg-base); border: 1px solid; border-radius: 2px;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.nodeReputation { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; }
+.nodeUrl  { font-size: 11px; color: var(--text-secondary); word-break: break-all; }
+.nodeStatus { font-family: var(--font-mono); font-size: 12px; font-weight: 700; }
+.redirectArrow { padding: 0 8px; color: var(--text-muted); .material-symbols-rounded { font-size: 20px; } }
+
+/* ── Network ── */
+.netStats { display: flex; gap: 24px; margin-bottom: 12px; flex-wrap: wrap; }
+.netStat { display: flex; flex-direction: column; gap: 2px;
+  span { font-size: 11px; color: var(--text-muted); }
+  b { font-family: var(--font-mono); font-size: 22px; font-weight: 600; color: var(--text-primary); }
+}
+.pcapBtn { display: flex; align-items: center; gap: 4px; margin-left: auto; padding: 6px 12px; background: var(--accent-blue-dim); color: var(--accent-blue); border: 1px solid var(--accent-blue); border-radius: 3px; font-size: 12px; text-decoration: none;
+  &:hover { background: var(--accent-blue); color: #fff; }
+  .material-symbols-rounded { font-size: 15px; }
+}
+.suricataWrap { margin-top: 12px; }
+.suricataTitle { font-size: 13px; font-weight: 600; color: var(--warn-amber); margin-bottom: 8px; }
+
+/* ── DOM Diff ── */
+.domPlaceholder { text-align: center; padding: 32px; color: var(--text-muted); font-size: 13px; }
+.domDiff { display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+  @media (max-width: 700px) { grid-template-columns: 1fr; } }
+.domPane { display: flex; flex-direction: column; }
+.domPaneLabel { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); margin-bottom: 6px; font-weight: 600; }
+.domCode {
+  font-family: var(--font-mono); font-size: 10.5px; color: var(--text-secondary);
+  background: var(--bg-base); border: 1px solid var(--border); border-radius: 2px;
+  padding: 10px; overflow: auto; max-height: 320px; white-space: pre-wrap; word-break: break-all;
+}
+
+.signalChart { margin-top: 8px; }

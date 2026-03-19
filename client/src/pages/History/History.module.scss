@@ -1,0 +1,91 @@
+.page { animation: fadeInUp 0.35s ease both; }
+
+.headerActions { display: flex; gap: 8px; align-items: center; }
+
+.filters { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+.searchInput { flex: 1; min-width: 220px; }
+.filterSelect {
+  padding: 9px 12px; background: var(--bg-input); border: 1px solid var(--border);
+  border-radius: 3px; font-size: 13px; color: var(--text-primary); outline: none; cursor: pointer;
+  &:focus { border-color: var(--accent-blue); }
+}
+
+.tableWrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 2px; }
+
+.table {
+  width: 100%; border-collapse: collapse; font-size: 13px;
+  th {
+    padding: 10px 14px; text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--text-muted); background: var(--bg-base); border-bottom: 1px solid var(--border-table);
+    white-space: nowrap; position: sticky; top: 0;
+  }
+  td { padding: 11px 14px; border-bottom: 1px solid var(--border-table); }
+  tr:last-child td { border-bottom: none; }
+}
+
+.sortable { cursor: pointer; user-select: none;
+  &:hover { color: var(--accent-blue); }
+  display: flex; align-items: center; gap: 4px;
+}
+
+.checkTh, .checkCell { width: 40px; }
+input[type="checkbox"] { accent-color: var(--accent-blue); cursor: pointer; }
+
+.row { transition: background 0.1s;
+  &:hover td { background: var(--accent-blue-dim); }
+}
+.selectedRow td { background: rgba(79,156,249,0.08) !important; }
+
+.urlCell {
+  display: flex; align-items: center; gap: 6px; cursor: pointer; max-width: 340px;
+  &:hover span:last-child { color: var(--accent-blue); }
+}
+.urlText { font-family: var(--font-mono); font-size: 12px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mono    { font-family: var(--font-mono); font-size: 12px; color: var(--text-secondary); white-space: nowrap; }
+
+.scoreVal { font-family: var(--font-mono); font-size: 15px; font-weight: 700; }
+.dash     { color: var(--text-disabled); }
+
+.statusPill {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 8px; border-radius: 3px; font-size: 11px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.04em;
+  &.status_complete { background: var(--safe-green-dim);  color: var(--safe-green);  }
+  &.status_queued   { background: var(--warn-amber-dim);  color: var(--warn-amber);  }
+  &.status_scanning { background: var(--accent-blue-dim); color: var(--accent-blue); }
+  &.status_error    { background: var(--threat-red-dim);  color: var(--threat-red);  }
+}
+.scanning {
+  width: 7px; height: 7px; border-radius: 50%; background: currentColor;
+  animation: pingRing 1.2s ease infinite;
+}
+
+.actions { display: flex; gap: 4px; }
+.actionBtn {
+  display: flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px; background: none; border: 1px solid var(--border); border-radius: 3px;
+  cursor: pointer; color: var(--text-muted); transition: all 0.12s;
+  .material-symbols-rounded { font-size: 15px; }
+  &:hover { color: var(--accent-blue); border-color: var(--accent-blue); }
+}
+.deleteBtn:hover { color: var(--threat-red) !important; border-color: var(--threat-red) !important; }
+
+.skeletonCell {
+  height: 14px; border-radius: 3px; background: var(--bg-card-hover);
+  animation: shimmer 1.5s infinite; background-size: 200%;
+}
+
+/* ── Pagination ── */
+.pagination { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; flex-wrap: wrap; gap: 12px; }
+.pageInfo   { font-size: 13px; color: var(--text-muted); }
+.pageControls { display: flex; gap: 4px; }
+.pageBtn {
+  display: flex; align-items: center; justify-content: center;
+  min-width: 32px; height: 32px; padding: 0 8px;
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 3px;
+  cursor: pointer; color: var(--text-secondary); font-size: 13px; transition: all 0.12s;
+  .material-symbols-rounded { font-size: 18px; }
+  &:hover:not(:disabled) { border-color: var(--accent-blue); color: var(--accent-blue); }
+  &:disabled { opacity: 0.35; cursor: not-allowed; }
+  &.activePage { background: var(--accent-blue); color: #fff; border-color: var(--accent-blue); }
+}

@@ -1,0 +1,7 @@
+{
+  "name": "honeyscan",
+  "private": true,
+  "scripts": {
+    "start": "node scripts/startSystem.cjs"
+  }
+}

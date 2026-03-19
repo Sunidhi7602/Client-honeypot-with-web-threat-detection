@@ -1,0 +1,71 @@
+.container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 380px;
+  pointer-events: none;
+}
+
+.toast {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent-blue);
+  border-radius: 3px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+  position: relative;
+  overflow: hidden;
+  pointer-events: all;
+  animation: toastSlideUp 0.3s cubic-bezier(0.16,1,0.3,1) both;
+
+  &.success { border-left-color: var(--safe-green);       .icon { color: var(--safe-green); } }
+  &.warn    { border-left-color: var(--warn-amber);       .icon { color: var(--warn-amber); } }
+  &.error   { border-left-color: var(--threat-red);       .icon { color: var(--threat-red); } }
+  &.critical{ border-left-color: var(--critical-purple);  .icon { color: var(--critical-purple); animation: criticalPulse 1.5s infinite; } }
+  &.info    { border-left-color: var(--accent-blue);      .icon { color: var(--accent-blue); } }
+}
+
+.icon {
+  font-size: 20px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.message {
+  flex: 1;
+  font-size: 13px;
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+
+.close {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+
+  &:hover { color: var(--text-primary); }
+  .material-symbols-rounded { font-size: 16px; }
+}
+
+.progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  background: currentColor;
+  opacity: 0.4;
+  animation: toastProgress linear forwards;
+  width: 100%;
+}

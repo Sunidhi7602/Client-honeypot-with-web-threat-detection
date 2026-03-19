@@ -1,0 +1,78 @@
+
+
+services:
+  mongodb:
+    image: mongo:7.0
+    container_name: honeyscan_mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: honeyscan
+      MONGO_INITDB_ROOT_PASSWORD: honeyscan_secret
+      MONGO_INITDB_DATABASE: honeyscan
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - honeyscan_net
+
+  redis:
+    image: redis:7.2-alpine
+    container_name: honeyscan_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - honeyscan_net
+
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: honeyscan_server
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      NODE_ENV: production
+      PORT: 5000
+      MONGO_URI: mongodb://honeyscan:honeyscan_secret@mongodb:27017/honeyscan?authSource=admin
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: change_this_in_production_very_long_secret
+      CLIENT_URL: http://localhost:3000
+    volumes:
+      - ./server/captures:/app/captures
+      - /var/log/suricata:/var/log/suricata:ro
+    depends_on:
+      - mongodb
+      - redis
+    networks:
+      - honeyscan_net
+    # Required for VirtualBox access on host
+    privileged: false
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: honeyscan_client
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      - server
+    networks:
+      - honeyscan_net
+
+volumes:
+  mongo_data:
+  redis_data:
+
+networks:
+  honeyscan_net:
+    driver: bridge
