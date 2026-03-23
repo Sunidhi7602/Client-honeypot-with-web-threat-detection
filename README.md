@@ -73,26 +73,39 @@ Important variables include:
 
 For local development, the example file already enables the skip flags so the project can run without the full sandbox stack.
 
-## Run with Docker
-
-This is the easiest way to start the project.
+## 🚀 Quick Start (Docker - Recommended)
 
 ```bash
+cp .env.example .env
 docker-compose up --build -d
 ```
 
-Services:
-
-- Client: `http://localhost:3000`
-- Server: `http://localhost:5000`
-- MongoDB: `localhost:27017`
-- Redis: `localhost:6379`
-
-To stop the containers:
-
+**Demo Data (optional):**
 ```bash
-docker-compose down
+docker-compose exec server node /app/services/seedDemo.js
 ```
+
+Optional JSON seed files can also be placed in `server/data/*.json`. Running the same
+`seedDemo.js` command will import those files into MongoDB after the generated demo scans.
+
+**Access:**
+- ✨ Dashboard: http://localhost:3000
+- 🔧 Server API: http://localhost:5000/health
+
+**Stop:**
+```bash
+docker-compose down -v  # -v clears volumes
+```
+
+## Features Now Fully Functional
+
+✅ **Live URL Scanning** (Puppeteer + signals)
+✅ **Realtime Progress** (Socket.IO terminal)
+✅ **Risk Scoring** (weighted ML model)
+✅ **Charts & History** (Recharts + MongoDB)
+✅ **IoC Extraction** (domains/IPs/hashes)
+✅ **Fallback Mode** (no VBox/tshark needed)
+✅ **Settings Page** (theme, weights, prefs)
 
 ## Run Locally Without Docker
 

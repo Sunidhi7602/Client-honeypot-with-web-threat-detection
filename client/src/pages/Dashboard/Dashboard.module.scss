@@ -1,15 +1,5 @@
 .page { animation: fadeInUp 0.35s ease both; }
 
-.refreshBtn {
-  display: flex; align-items: center; gap: 6px;
-  padding: 8px 16px; background: var(--accent-blue-dim);
-  color: var(--accent-blue); border: 1px solid var(--border-strong);
-  border-radius: 3px; font-family: var(--font-body); font-size: 13px;
-  cursor: pointer; transition: all 0.15s;
-  .material-symbols-rounded { font-size: 16px; }
-  &:hover { background: var(--accent-blue); color: #fff; }
-}
-
 .statGrid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);

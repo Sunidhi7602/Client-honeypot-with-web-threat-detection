@@ -36,7 +36,25 @@ router.get('/overview', async (req, res, next) => {
 router.get('/scans-per-day', async (req, res, next) => {
   try {
     const days = parseInt(req.query.days) || 30;
-    const data = await Scan.getScansPerDay(days);
+    const since = new Date();
+    since.setDate(since.getDate() - days);
+
+    const data = await Scan.aggregate([
+      { $match: { status: 'complete', submittedAt: { $gte: since } } },
+      {
+        $group: {
+          _id: { $dateToString: { format: '%Y-%m-%d', date: '$submittedAt' } },
+          total: { $sum: 1 },
+          highCritical: {
+            $sum: {
+              $cond: [{ $in: ['$riskLevel', ['High', 'Critical']] }, 1, 0],
+            },
+          },
+          avgScore: { $avg: '$threatScore' },
+        },
+      },
+      { $sort: { _id: 1 } },
+    ]);
     res.json({ data });
   } catch (error) {
     next(error);
@@ -46,7 +64,11 @@ router.get('/scans-per-day', async (req, res, next) => {
 // GET /api/stats/severity-distribution
 router.get('/severity-distribution', async (req, res, next) => {
   try {
-    const data = await Scan.getSeverityDistribution();
+    const data = await Scan.aggregate([
+      { $match: { status: 'complete' } },
+      { $group: { _id: '$riskLevel', count: { $sum: 1 } } },
+      { $sort: { _id: 1 } },
+    ]);
     res.json({ data });
   } catch (error) {
     next(error);
@@ -56,7 +78,19 @@ router.get('/severity-distribution', async (req, res, next) => {
 // GET /api/stats/heatmap
 router.get('/heatmap', async (req, res, next) => {
   try {
-    const data = await Scan.getHeatmapData();
+    const data = await Scan.aggregate([
+      { $match: { status: 'complete', submittedAt: { $gte: new Date(Date.now() - 7*24*60*60*1000) } } },
+      {
+        $group: {
+          _id: {
+            dayOfWeek: { $dayOfWeek: '$submittedAt' },
+            hour: { $hour: '$submittedAt' },
+          },
+          avgScore: { $avg: '$threatScore' },
+          count: { $sum: 1 },
+        },
+      },
+    ]);
     res.json({ data });
   } catch (error) {
     next(error);

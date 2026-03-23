@@ -7,9 +7,6 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const connectDB = require('./config/db');
-const { createBullBoard } = require('./config/bullBoard');
-
-// Route imports
 
 const scanRoutes = require('./routes/scans');
 const scoreRoutes = require('./routes/score');
@@ -45,21 +42,27 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('combined'));
 
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100,
+// Read-heavy dashboards poll several endpoints, so keep the general API limiter
+// reasonably high and reserve strict throttling for scan submissions only.
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: process.env.NODE_ENV === 'development' ? 1000 : 600,
   message: { error: 'Too many requests, please try again later.' },
 });
-app.use('/api/', limiter);
+app.use('/api/', apiLimiter);
 
-// Scan submission stricter limit
 const scanLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 5,
   message: { error: 'Scan rate limit exceeded. Max 5 scans per minute.' },
 });
-app.use('/api/scans', scanLimiter);
+
+app.use('/api/scans', (req, res, next) => {
+  if (req.method === 'POST' && req.path === '/') {
+    return scanLimiter(req, res, next);
+  }
+  return next();
+});
 
 // Static file serving for pcap downloads
 app.use('/captures', express.static(require('path').join(__dirname, 'captures')));
@@ -70,6 +73,7 @@ app.use('/api/scans', scanRoutes);
 app.use('/api/score', scoreRoutes);
 app.use('/api/iocs', iocRoutes);
 app.use('/api/stats', statsRoutes);
+app.use('/api/settings', require('./routes/settings'));
 
 // Health check
 app.get('/health', (req, res) => {

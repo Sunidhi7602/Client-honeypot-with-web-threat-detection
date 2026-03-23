@@ -1,46 +1,51 @@
 import { io } from 'socket.io-client';
 
 let socket = null;
+let listenersBound = false;
+
+const resolveSocketUrl = () => import.meta.env.VITE_SOCKET_URL || window.location.origin;
+
+const bindDebugListeners = (instance) => {
+  if (listenersBound) return;
+
+  listenersBound = true;
+};
 
 export const getSocket = () => {
-  if (socket?.connected) return socket;
+  if (!socket) {
+    socket = io(resolveSocketUrl(), {
+      path: '/socket.io',
+      autoConnect: false,
+      reconnection: true,
+      reconnectionDelay: 1000,
+      reconnectionAttempts: 10,
+      transports: ['websocket', 'polling'],
+    });
 
-  socket = io('/', {
-    autoConnect: true,
-    reconnection: true,
-    reconnectionDelay: 1000,
-    reconnectionAttempts: 10,
-    transports: ['websocket', 'polling'],
-  });
+    bindDebugListeners(socket);
+  }
 
-  socket.on('connect', () => {
-    console.log('[Socket.IO] Connected:', socket.id);
-  });
-
-  socket.on('disconnect', (reason) => {
-    console.warn('[Socket.IO] Disconnected:', reason);
-  });
-
-  socket.on('connect_error', (err) => {
-    console.error('[Socket.IO] Connection error:', err.message);
-  });
+  if (!socket.connected && !socket.active) {
+    socket.connect();
+  }
 
   return socket;
 };
 
 export const subscribeScan = (scanId) => {
-  const s = getSocket();
-  s.emit('subscribe', { scanId });
+  const instance = getSocket();
+  instance.emit('subscribe', { scanId });
 };
 
 export const unsubscribeScan = (scanId) => {
-  const s = getSocket();
-  s.emit('unsubscribe', { scanId });
+  if (!socket) return;
+  socket.emit('unsubscribe', { scanId });
 };
 
 export const disconnectSocket = () => {
-  if (socket) {
-    socket.disconnect();
-    socket = null;
-  }
+  if (!socket) return;
+
+  socket.disconnect();
+  socket = null;
+  listenersBound = false;
 };

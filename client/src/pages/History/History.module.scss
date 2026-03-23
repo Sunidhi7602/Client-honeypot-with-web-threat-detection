@@ -23,18 +23,24 @@
   tr:last-child td { border-bottom: none; }
 }
 
-.sortable { cursor: pointer; user-select: none;
-  &:hover { color: var(--accent-blue); }
-  display: flex; align-items: center; gap: 4px;
+.sortable {
+  cursor: pointer;
+  user-select: none;
+
+  &:hover {
+    color: var(--accent-blue);
+  }
 }
 
-.checkTh, .checkCell { width: 40px; }
-input[type="checkbox"] { accent-color: var(--accent-blue); cursor: pointer; }
+.sortLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
 
 .row { transition: background 0.1s;
   &:hover td { background: var(--accent-blue-dim); }
 }
-.selectedRow td { background: rgba(79,156,249,0.08) !important; }
 
 .urlCell {
   display: flex; align-items: center; gap: 6px; cursor: pointer; max-width: 340px;

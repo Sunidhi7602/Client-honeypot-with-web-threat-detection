@@ -1,5 +1,4 @@
 const Bull = require('bull');
-const { createBullConnection } = require('../config/redis');
 
 let scanQueue = null;
 

@@ -33,7 +33,12 @@ export default function App() {
   return (
     <ThemeProvider>
       <ToastProvider>
-        <BrowserRouter>
+        <BrowserRouter
+          future={{
+            v7_startTransition: true,
+            v7_relativeSplatPath: true,
+          }}
+        >
           <AppRoutes />
           <ToastContainer />
         </BrowserRouter>

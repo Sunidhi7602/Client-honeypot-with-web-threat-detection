@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Outlet, NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { Outlet, NavLink, useLocation } from 'react-router-dom';
 
 import { useTheme } from '../../context/ThemeContext';
-import { useToast } from '../../context/ToastContext';
 import styles from './AppLayout.module.scss';
 
 const NAV_ITEMS = [
@@ -19,10 +18,7 @@ export default function AppLayout() {
   const [expanded, setExpanded] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth <= MOBILE_BREAKPOINT);
-  // No auth
   const { theme, cycleTheme, themes } = useTheme();
-  const { toast } = useToast();
-  const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
@@ -69,8 +65,6 @@ export default function AppLayout() {
 
     setExpanded((open) => !open);
   };
-
-
 
   const sidebarClassName = [
     styles.sidebar,
@@ -157,21 +151,7 @@ export default function AppLayout() {
               </div>
             </div>
           </div>
-
-          <div className={styles.topbarMeta}>
-            <div className={styles.statusPill}>
-              <span className={styles.statusDot} />
-              Monitoring Active
-            </div>
-            <div className={styles.analystBlock}>
-              <span className={`material-symbols-rounded ${styles.analystIcon}`}>verified_user</span>
-              <div>
-
-
-              </div>
-            </div>
-          </div>
-        </header>
+       </header>
 
         <div className={styles.content}>
           <Outlet />

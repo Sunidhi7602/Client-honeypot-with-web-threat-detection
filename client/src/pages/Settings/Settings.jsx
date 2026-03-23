@@ -1,206 +1,306 @@
-import React, { useState, useEffect } from 'react';
-import { PageHeader, Btn } from '../../components/ui/UIComponents';
-
+import React, { useState, useEffect, useCallback } from 'react';
 import { useTheme } from '../../context/ThemeContext';
 import { useToast } from '../../context/ToastContext';
+import api from '../../services/api';
 import styles from './Settings.module.scss';
 
-const DEFAULT_WEIGHTS = {
-  scriptCount: 0.25, redirectCount: 0.20, hiddenIframes: 0.20,
-  downloadAttempts: 0.15, domMutationRate: 0.10, externalScripts: 0.10,
-};
+const DEFAULT_SCAN_WEIGHTS = { ioc: 30, behavior: 25, network: 20, reputation: 25 };
+const DEFAULT_SCAN_DEFAULTS = { wireshark: true, suricata: true, sandbox: true, maxConcurrent: 3 };
+const DEFAULT_TOAST_PREFS = { safe: true, medium: true, high: true, critical: true };
 
-const WEIGHT_LABELS = {
-  scriptCount: 'Script Executions', redirectCount: 'Redirect Hops',
-  hiddenIframes: 'Hidden iFrames', downloadAttempts: 'Download Attempts',
-  domMutationRate: 'DOM Mutation Rate', externalScripts: 'External Scripts',
+const THEME_PREVIEW_COLORS = {
+  dark: { bg: '#0a0a0a', border: '#1e1e1e', text: '#e0e0e0', accent: '#3b82f6' },
+  light: { bg: '#ffffff', border: '#e5e7eb', text: '#111827', accent: '#2563eb' },
+  soc: { bg: '#000000', border: '#00ff41', text: '#00ff41', accent: '#00ff41' }
 };
 
 export default function Settings() {
-  // No auth - settings local
   const { theme, setTheme, themes } = useTheme();
   const { toast } = useToast();
 
-  const [vtKey, setVtKey]         = useState('');
-  const [showKey, setShowKey]     = useState(false);
-  const [weights, setWeights]     = useState({ ...DEFAULT_WEIGHTS });
-  const [scanDefaults, setScanDefaults] = useState({
-    observationWindow: 30, maxRedirectDepth: 5,
-    userAgent: 'HoneyScan/1.0 (Research Scanner)', enableSuricata: false,
-  });
-  const [toastPrefs, setToastPrefs] = useState({
-    safe: false, medium: true, high: true, critical: true,
-  });
-  const [saving, setSaving] = useState(false);
+  // ── State ──
+  const [vtApiKey, setVtApiKey] = useState('');
+  const [showVtKey, setShowVtKey] = useState(false);
+  const [scanWeights, setScanWeights] = useState(DEFAULT_SCAN_WEIGHTS);
+  const [scanDefaults, setScanDefaults] = useState(DEFAULT_SCAN_DEFAULTS);
+  const [toastPrefs, setToastPrefs] = useState(DEFAULT_TOAST_PREFS);
+  const [isSaving, setIsSaving] = useState(false);
+  const [totalWeight, setTotalWeight] = useState(100);
 
+  // ── Load from localStorage ──
+  useEffect(() => {
+    const loadSettings = () => {
+      try {
+        const saved = {
+          vtApiKey: localStorage.getItem('settings.vtApiKey') || '',
+          scanWeights: JSON.parse(localStorage.getItem('settings.scanWeights') || '{}'),
+          scanDefaults: JSON.parse(localStorage.getItem('settings.scanDefaults') || '{}'),
+          toastPrefs: JSON.parse(localStorage.getItem('settings.toastPrefs') || '{}')
+        };
+        setVtApiKey(saved.vtApiKey);
+        setScanWeights({ ...DEFAULT_SCAN_WEIGHTS, ...saved.scanWeights });
+        setScanDefaults({ ...DEFAULT_SCAN_DEFAULTS, ...saved.scanDefaults });
+        setToastPrefs({ ...DEFAULT_TOAST_PREFS, ...saved.toastPrefs });
+      } catch {}
+    };
+    loadSettings();
+  }, []);
 
+  // ── Update total weight ──
+  useEffect(() => {
+    const total = Object.values(scanWeights).reduce((sum, w) => sum + Number(w), 0);
+    setTotalWeight(Math.min(100, Math.max(0, total)));
+  }, [scanWeights]);
 
-  const totalWeight = Object.values(weights).reduce((a, b) => a + b, 0);
+  // ── Handlers ──
+  const handleWeightChange = useCallback((key, value) => {
+    setScanWeights(prev => ({ ...prev, [key]: Number(value) }));
+  }, []);
 
-  const handleSave = () => {
-    toast.success('Settings updated locally (no backend save)');
+  const handleSave = useCallback(async () => {
+    setIsSaving(true);
+    try {
+      // Save to localStorage
+      localStorage.setItem('settings.vtApiKey', vtApiKey);
+      localStorage.setItem('settings.scanWeights', JSON.stringify(scanWeights));
+      localStorage.setItem('settings.scanDefaults', JSON.stringify(scanDefaults));
+      localStorage.setItem('settings.toastPrefs', JSON.stringify(toastPrefs));
+
+      // Optional: Save to API
+      // await api.post('/settings', { vtApiKey, scanWeights, scanDefaults, toastPrefs });
+
+      toast.success('Settings saved successfully!');
+      
+      // Apply theme if changed
+      if (localStorage.getItem('hs_theme') !== theme) {
+        setTheme(localStorage.getItem('hs_theme'));
+      }
+    } catch (error) {
+      toast.error('Failed to save settings');
+    } finally {
+      setIsSaving(false);
+    }
+  }, [vtApiKey, scanWeights, scanDefaults, toastPrefs, theme, setTheme, toast]);
+
+  const handleReset = useCallback(() => {
+    if (confirm('Reset all settings to defaults?')) {
+      localStorage.removeItem('settings.vtApiKey');
+      localStorage.removeItem('settings.scanWeights');
+      localStorage.removeItem('settings.scanDefaults');
+      localStorage.removeItem('settings.toastPrefs');
+      setVtApiKey('');
+      setScanWeights(DEFAULT_SCAN_WEIGHTS);
+      setScanDefaults(DEFAULT_SCAN_DEFAULTS);
+      setToastPrefs(DEFAULT_TOAST_PREFS);
+      toast.success('Settings reset to defaults');
+    }
+  }, [toast]);
+
+  const validateVtKey = (key) => {
+    return key.length >= 32 && key.includes('YOUR_VT_API_KEY');
   };
 
-  const resetWeights = () => setWeights({ ...DEFAULT_WEIGHTS });
+  const themePreviewStyle = (t) => ({
+    backgroundColor: THEME_PREVIEW_COLORS[t]?.bg || '#ffffff',
+    color: THEME_PREVIEW_COLORS[t]?.text || '#000000',
+    borderLeftColor: THEME_PREVIEW_COLORS[t]?.accent || '#3b82f6'
+  });
 
   return (
     <div className={styles.page}>
-      <PageHeader title="Settings" subtitle="Configure your HoneyScan analyst environment" icon="settings" />
-
       <div className={styles.grid}>
-        {/* ── Theme Switcher ── */}
+        
+        {/* ── Theme Section ── */}
         <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>
-            <span className="material-symbols-rounded">palette</span> Appearance
-          </h2>
+          <div className={styles.sectionHead}>
+            <h2 className={styles.sectionTitle}>
+              <span className="material-symbols-rounded">palette</span>
+              Appearance
+            </h2>
+            <button className={styles.resetBtn} onClick={handleReset}>Reset</button>
+          </div>
+          <p className={styles.sectionHint}>Select your preferred workspace theme</p>
+          
           <div className={styles.themeCards}>
-            {Object.entries(themes).map(([key, meta]) => (
+            {Object.entries(themes).map(([key, data]) => (
               <button
                 key={key}
                 className={`${styles.themeCard} ${theme === key ? styles.activeTheme : ''}`}
                 onClick={() => setTheme(key)}
-                data-theme-preview={key}
               >
-                <span className="material-symbols-rounded">{meta.icon}</span>
+                <span className="material-symbols-rounded">{data.icon}</span>
                 <div>
-                  <div className={styles.themeName}>{meta.label}</div>
-                  <div className={styles.themeDesc}>{meta.description}</div>
+                  <div className={styles.themeName}>{data.label}</div>
+                  <div className={styles.themeDesc}>{data.description}</div>
                 </div>
-                {theme === key && <span className="material-symbols-rounded" style={{ marginLeft: 'auto', color: 'var(--accent-blue)' }}>check_circle</span>}
               </button>
             ))}
           </div>
-          {/* Live preview */}
+
           <div className={styles.themePreview}>
-            <div className={styles.previewLabel}>Live Preview</div>
+            <div className={styles.previewLabel}>Preview</div>
             <div className={styles.previewCards}>
-              <div className={styles.previewCard} style={{ borderLeftColor: 'var(--safe-green)' }}>
-                <span style={{ color: 'var(--safe-green)' }}>Safe</span>
-                <span className={styles.previewScore}>12</span>
-              </div>
-              <div className={styles.previewCard} style={{ borderLeftColor: 'var(--warn-amber)' }}>
-                <span style={{ color: 'var(--warn-amber)' }}>Medium</span>
-                <span className={styles.previewScore}>44</span>
-              </div>
-              <div className={styles.previewCard} style={{ borderLeftColor: 'var(--threat-red)' }}>
-                <span style={{ color: 'var(--threat-red)' }}>Critical</span>
-                <span className={styles.previewScore}>89</span>
+              <div className={styles.previewCard} style={themePreviewStyle(theme)}>
+                <span>Sample Card</span>
+                <span className={styles.previewScore}>87</span>
               </div>
             </div>
           </div>
         </section>
 
-        {/* ── VirusTotal API Key ── */}
+        {/* ── VirusTotal API ── */}
         <section className={styles.section}>
           <h2 className={styles.sectionTitle}>
-            <span className="material-symbols-rounded">vpn_key</span> VirusTotal Integration
+            <span className="material-symbols-rounded">api</span>
+            VirusTotal
           </h2>
+          <p className={styles.sectionHint}>API key for reputation lookups (required for Analysis)</p>
+          
           <div className={styles.vtWrap}>
-            <label className={styles.fieldLabel}>API Key (v3)</label>
+            <label className={styles.fieldLabel}>API Key</label>
             <div className={styles.vtInput}>
               <input
-                type={showKey ? 'text' : 'password'}
+                type={showVtKey ? 'text' : 'password'}
                 className={styles.textInput}
-                placeholder={user?.settings?.virusTotalApiKey ? '••••••••••••••••' : 'Enter your VirusTotal API key'}
-                value={vtKey}
-                onChange={e => setVtKey(e.target.value)}
+                value={vtApiKey}
+                onChange={(e) => setVtApiKey(e.target.value)}
+                placeholder="pk_..."
               />
-              <button className={styles.eyeBtn} onClick={() => setShowKey(s => !s)}>
-                <span className="material-symbols-rounded">{showKey ? 'visibility_off' : 'visibility'}</span>
+              <button
+                type="button"
+                className={styles.eyeBtn}
+                onClick={() => setShowVtKey(!showVtKey)}
+              >
+                <span className="material-symbols-rounded">
+                  {showVtKey ? 'visibility_off' : 'visibility'}
+                </span>
               </button>
             </div>
-            <p className={styles.fieldHint}>
-              Used for IoC enrichment lookups. Without a key, the VirusTotal button opens the web interface.
-              Get a free key at <a href="https://virustotal.com" target="_blank" rel="noreferrer">virustotal.com</a>.
-            </p>
+            {vtApiKey && !validateVtKey(vtApiKey) && (
+              <div className={styles.fieldHint} style={{color: 'var(--threat-red)'}}>
+                Invalid VirusTotal API key format
+              </div>
+            )}
           </div>
         </section>
+      </div>
 
-        {/* ── Risk Score Weights ── */}
+      <div className={styles.grid}>
+        {/* ── Risk Scoring Weights ── */}
         <section className={styles.section}>
-          <div className={styles.sectionHead}>
-            <h2 className={styles.sectionTitle}>
-              <span className="material-symbols-rounded">tune</span> Risk Score Weights
-            </h2>
-            <button className={styles.resetBtn} onClick={resetWeights}>Reset defaults</button>
-          </div>
-          <p className={styles.sectionHint}>
-            Adjust signal importance. Weights are auto-normalized — total: <code className={styles.totalCode} style={{ color: Math.abs(totalWeight - 1) < 0.01 ? 'var(--safe-green)' : 'var(--warn-amber)' }}>{totalWeight.toFixed(2)}</code>
-          </p>
+          <h2 className={styles.sectionTitle}>
+            <span className="material-symbols-rounded">tune</span>
+            Risk Weights
+          </h2>
+          <p className={styles.sectionHint}>Adjust scoring algorithm priorities (total: 100%)</p>
+          
           <div className={styles.weightSliders}>
-            {Object.entries(weights).map(([signal, val]) => (
-              <div key={signal} className={styles.sliderRow}>
-                <label className={styles.sliderLabel}>{WEIGHT_LABELS[signal]}</label>
+            {Object.entries(DEFAULT_SCAN_WEIGHTS).map(([key, def]) => (
+              <div key={key} className={styles.sliderRow}>
+                <span className={styles.sliderLabel}>
+                  {key === 'ioc' ? 'IOCs' : key === 'behavior' ? 'Behavior' : key === 'network' ? 'Network' : 'Reputation'}
+                </span>
                 <input
-                  type="range" min={0} max={0.5} step={0.01}
-                  value={val}
-                  onChange={e => setWeights(w => ({ ...w, [signal]: parseFloat(e.target.value) }))}
+                  type="range"
+                  min="0"
+                  max="100"
+                  step="1"
+                  value={scanWeights[key]}
                   className={styles.slider}
+                  onChange={(e) => handleWeightChange(key, e.target.value)}
                 />
-                <span className={styles.sliderVal}>{(val * 100).toFixed(0)}%</span>
+                <span className={styles.sliderVal}>{scanWeights[key]}%</span>
               </div>
             ))}
           </div>
+          <div className={styles.totalCode}>Total: {totalWeight}%</div>
         </section>
 
         {/* ── Scan Defaults ── */}
         <section className={styles.section}>
           <h2 className={styles.sectionTitle}>
-            <span className="material-symbols-rounded">settings_suggest</span> Scan Defaults
+            <span className="material-symbols-rounded">settings_overscan</span>
+            Scan Defaults
           </h2>
+          
           <div className={styles.fieldGrid}>
             <div className={styles.fieldItem}>
-              <label className={styles.fieldLabel}>Observation Window (seconds)</label>
-              <input type="number" className={styles.textInput} min={10} max={120}
-                value={scanDefaults.observationWindow}
-                onChange={e => setScanDefaults(d => ({ ...d, observationWindow: +e.target.value }))} />
+              <label className={styles.toggleLabel}>
+                <input
+                  type="checkbox"
+                  checked={scanDefaults.wireshark}
+                  onChange={(e) => setScanDefaults(prev => ({...prev, wireshark: e.target.checked}))}
+                />
+                Wireshark Capture
+              </label>
+              <label className={styles.toggleLabel}>
+                <input
+                  type="checkbox"
+                  checked={scanDefaults.suricata}
+                  onChange={(e) => setScanDefaults(prev => ({...prev, suricata: e.target.checked}))}
+                />
+                Suricata IDS
+              </label>
             </div>
             <div className={styles.fieldItem}>
-              <label className={styles.fieldLabel}>Max Redirect Depth</label>
-              <input type="number" className={styles.textInput} min={1} max={20}
-                value={scanDefaults.maxRedirectDepth}
-                onChange={e => setScanDefaults(d => ({ ...d, maxRedirectDepth: +e.target.value }))} />
-            </div>
-            <div className={styles.fieldItem} style={{ gridColumn: '1/-1' }}>
-              <label className={styles.fieldLabel}>Default User Agent</label>
-              <input type="text" className={styles.textInput}
-                value={scanDefaults.userAgent}
-                onChange={e => setScanDefaults(d => ({ ...d, userAgent: e.target.value }))} />
-            </div>
-            <div className={styles.fieldItem} style={{ gridColumn: '1/-1' }}>
               <label className={styles.toggleLabel}>
-                <input type="checkbox" checked={scanDefaults.enableSuricata}
-                  onChange={e => setScanDefaults(d => ({ ...d, enableSuricata: e.target.checked }))} />
-                Enable Suricata IDS by default on Deep Scans
+                <input
+                  type="checkbox"
+                  checked={scanDefaults.sandbox}
+                  onChange={(e) => setScanDefaults(prev => ({...prev, sandbox: e.target.checked}))}
+                />
+                VM Sandbox
               </label>
+              <label className={styles.fieldLabel}>Max Concurrent</label>
+              <input
+                type="number"
+                min="1"
+                max="10"
+                value={scanDefaults.maxConcurrent}
+                onChange={(e) => setScanDefaults(prev => ({...prev, maxConcurrent: Number(e.target.value)}))}
+                className={styles.textInput}
+              />
             </div>
-          </div>
-        </section>
-
-        {/* ── Toast Preferences ── */}
-        <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>
-            <span className="material-symbols-rounded">notifications</span> Notification Preferences
-          </h2>
-          <div className={styles.toastPrefs}>
-            {Object.entries(toastPrefs).map(([level, enabled]) => (
-              <label key={level} className={styles.toastPref}>
-                <input type="checkbox" checked={enabled}
-                  onChange={e => setToastPrefs(p => ({ ...p, [level]: e.target.checked }))} />
-                <span className={`${styles.toastLevel} ${styles[`level_${level}`]}`}>{level}</span>
-                <span style={{ color: 'var(--text-secondary)', fontSize: 13 }}>severity notifications</span>
-              </label>
-            ))}
           </div>
         </section>
       </div>
 
-      {/* Save Button */}
+      {/* ── Toast Preferences ── */}
+      <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>
+          <span className="material-symbols-rounded">notifications</span>
+          Notifications
+        </h2>
+        <p className={styles.sectionHint}>Select toast notification levels to show</p>
+        
+        <div className={styles.toastPrefs}>
+          {Object.entries(DEFAULT_TOAST_PREFS).map(([level]) => (
+            <label key={level} className={styles.toastPref}>
+              <input
+                type="checkbox"
+                checked={toastPrefs[level]}
+                onChange={(e) => setToastPrefs(prev => ({...prev, [level]: e.target.checked}))}
+              />
+              <span className={`${styles.toastLevel} level_${level}`}>{level.toUpperCase()}</span>
+            </label>
+          ))}
+        </div>
+      </section>
+
+      {/* ── Save Bar ── */}
       <div className={styles.saveBar}>
-        <Btn variant="primary" size="lg" icon="save" loading={saving} onClick={handleSave}>
-          Save All Settings
-        </Btn>
+        <button className={styles.resetBtn} onClick={handleReset} disabled={isSaving}>
+          Reset Defaults
+        </button>
+        <button 
+          onClick={handleSave} 
+          disabled={isSaving || totalWeight !== 100}
+          style={{marginLeft: '12px', padding: '8px 20px', background: 'var(--accent-blue)', color: 'white', border: 'none', borderRadius: '3px'}}
+        >
+          {isSaving ? 'Saving...' : 'Save All Settings'}
+        </button>
       </div>
     </div>
   );
 }
+

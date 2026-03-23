@@ -254,7 +254,7 @@ async function main() {
   await ensureDependencies(clientDir, 'client');
   await startDatabases();
 
-  spawnLongRunningProcess('server', 'npm', ['run', 'dev'], {
+  spawnLongRunningProcess('server', 'node', ['index.js'], {
     cwd: serverDir,
     env: {
       ...process.env,
@@ -262,7 +262,7 @@ async function main() {
       PORT: process.env.PORT || '5000',
       CLIENT_URL: process.env.CLIENT_URL || 'http://localhost:3000',
       JWT_SECRET: process.env.JWT_SECRET || 'dev_honeyscan_secret_change_me',
-      MONGO_URI: process.env.MONGO_URI || (databasesStartedByScript ? 'mongodb://honeyscan:honeyscan_secret@localhost:27017/honeyscan?authSource=admin' : 'mongodb://localhost:27017/honeyscan'),
+      MONGO_URI: process.env.MONGO_URI || 'mongodb://honeyscan:honeyscan_secret@localhost:27017/honeyscan?authSource=admin',
       REDIS_URL: process.env.REDIS_URL || 'redis://localhost:6379',
       SKIP_VM: process.env.SKIP_VM || 'true',
       SKIP_WIRESHARK: process.env.SKIP_WIRESHARK || 'true',

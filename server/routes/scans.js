@@ -1,10 +1,8 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
-const { v4: uuidv4 } = require('uuid');
 const Scan = require('../models/Scan');
 
 const { addScanJob } = require('../services/scanQueue');
-const path = require('path');
 const fs = require('fs');
 
 const router = express.Router();

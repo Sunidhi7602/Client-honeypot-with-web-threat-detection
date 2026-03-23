@@ -4,7 +4,7 @@ import {
   PieChart, Pie, Cell, Legend,
 } from 'recharts';
 import { PageHeader, StatCard, Card, SeverityBadge, EmptyState } from '../../components/ui/UIComponents';
-import { getSocket, subscribeScan } from '../../services/socket';
+import { getSocket } from '../../services/socket';
 import api from '../../services/api';
 import styles from './Dashboard.module.scss';
 
@@ -37,8 +37,11 @@ export default function Dashboard() {
   const [recent, setRecent]         = useState([]);
   const [loading, setLoading]       = useState(true);
   const feedRef = useRef(null);
+  const isFetchingRef = useRef(false);
 
   const fetchAll = useCallback(async () => {
+    if (isFetchingRef.current) return;
+    isFetchingRef.current = true;
     try {
       const [ov, spd, sev, hm, rec] = await Promise.all([
         api.get('/stats/overview'),
@@ -55,6 +58,7 @@ export default function Dashboard() {
     } catch (e) {
       console.error('Dashboard fetch error:', e);
     } finally {
+      isFetchingRef.current = false;
       setLoading(false);
     }
   }, []);
@@ -90,12 +94,6 @@ export default function Dashboard() {
         title="Threat Dashboard"
         subtitle="Real-time overview of your honeypot scan intelligence"
         icon="radar"
-        actions={
-          <button className={styles.refreshBtn} onClick={fetchAll}>
-            <span className="material-symbols-rounded">refresh</span>
-            Refresh
-          </button>
-        }
       />
 
       {/* ── Stat Cards ── */}

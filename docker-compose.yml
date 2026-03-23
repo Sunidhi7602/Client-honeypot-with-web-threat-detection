@@ -11,10 +11,17 @@ services:
       MONGO_INITDB_ROOT_USERNAME: honeyscan
       MONGO_INITDB_ROOT_PASSWORD: honeyscan_secret
       MONGO_INITDB_DATABASE: honeyscan
+      MONGO_INITDB_DATABASE_admin__honeyscan: honeyscan_secret
     volumes:
       - mongo_data:/data/db
     networks:
       - honeyscan_net
+    healthcheck:
+      test: ["CMD-SHELL", "mongosh --quiet --username \"$${MONGO_INITDB_ROOT_USERNAME}\" --password \"$${MONGO_INITDB_ROOT_PASSWORD}\" --authenticationDatabase admin --eval \"db.adminCommand({ ping: 1 }).ok\" | grep 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
 
   redis:
     image: redis:7.2-alpine
@@ -27,6 +34,12 @@ services:
       - redis_data:/data
     networks:
       - honeyscan_net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   server:
     build:
@@ -37,24 +50,32 @@ services:
     ports:
       - "5000:5000"
     environment:
-      NODE_ENV: production
-      PORT: 5000
-      MONGO_URI: mongodb://honeyscan:honeyscan_secret@mongodb:27017/honeyscan?authSource=admin
-      REDIS_URL: redis://redis:6379
-      JWT_SECRET: change_this_in_production_very_long_secret
-      CLIENT_URL: http://localhost:3000
+      NODE_ENV: ${NODE_ENV:-production}
+      PORT: ${PORT:-5000}
+      MONGO_URI: ${MONGO_URI_DOCKER:-mongodb://honeyscan:honeyscan_secret@mongodb:27017/honeyscan?authSource=admin&authMechanism=DEFAULT}
+      REDIS_URL: ${REDIS_URL_DOCKER:-redis://redis:6379}
+      JWT_SECRET: ${JWT_SECRET:-change_this_in_production_very_long_secret}
+      CLIENT_URL: ${CLIENT_URL:-http://localhost:3000}
     volumes:
       - ./server/captures:/app/captures
       - /var/log/suricata:/var/log/suricata:ro
     depends_on:
-      - mongodb
-      - redis
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
       - honeyscan_net
     # Required for VirtualBox access on host
     privileged: false
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:5000/health"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   client:
     build:
@@ -65,9 +86,16 @@ services:
     ports:
       - "3000:80"
     depends_on:
-      - server
+      server:
+        condition: service_healthy
     networks:
       - honeyscan_net
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://localhost/ >/dev/null 2>&1 || exit 1"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
 
 volumes:
   mongo_data:

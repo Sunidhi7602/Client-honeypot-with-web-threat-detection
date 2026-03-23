@@ -20,6 +20,8 @@ server/captures/*.pcap
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+client/.npm-cache/
+server/.npm-cache/
 
 # OS
 .DS_Store
