@@ -163,7 +163,3 @@ The backend includes routes for:
 - Development mode can skip VirtualBox, Wireshark, and Suricata using environment flags.
 - Docker is useful for the application stack, while some sandbox capabilities may still depend on host-level security tools.
 - Do not scan systems or URLs without authorization.
-
-## Repository Description
-
-HoneyScan is a web-based client honeypot and web threat detection platform for analyzing suspicious URLs, scanning websites, and identifying potential security risks.
