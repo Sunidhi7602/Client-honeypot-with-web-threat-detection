@@ -1,11 +1,11 @@
 const express = require('express');
 const Scan = require('../models/Scan');
-const { authMiddleware } = require('../middleware/auth');
+
 
 const router = express.Router();
 
 // GET /api/stats/overview — 4 stat cards
-router.get('/overview', authMiddleware, async (req, res, next) => {
+router.get('/overview', async (req, res, next) => {
   try {
     const [totalScans, criticalScans, avgScoreResult, totalIoCsResult] = await Promise.all([
       Scan.countDocuments({ status: 'complete' }),
@@ -33,7 +33,7 @@ router.get('/overview', authMiddleware, async (req, res, next) => {
 });
 
 // GET /api/stats/scans-per-day
-router.get('/scans-per-day', authMiddleware, async (req, res, next) => {
+router.get('/scans-per-day', async (req, res, next) => {
   try {
     const days = parseInt(req.query.days) || 30;
     const data = await Scan.getScansPerDay(days);
@@ -44,7 +44,7 @@ router.get('/scans-per-day', authMiddleware, async (req, res, next) => {
 });
 
 // GET /api/stats/severity-distribution
-router.get('/severity-distribution', authMiddleware, async (req, res, next) => {
+router.get('/severity-distribution', async (req, res, next) => {
   try {
     const data = await Scan.getSeverityDistribution();
     res.json({ data });
@@ -54,7 +54,7 @@ router.get('/severity-distribution', authMiddleware, async (req, res, next) => {
 });
 
 // GET /api/stats/heatmap
-router.get('/heatmap', authMiddleware, async (req, res, next) => {
+router.get('/heatmap', async (req, res, next) => {
   try {
     const data = await Scan.getHeatmapData();
     res.json({ data });
@@ -64,7 +64,7 @@ router.get('/heatmap', authMiddleware, async (req, res, next) => {
 });
 
 // GET /api/stats/top-ioc-types
-router.get('/top-ioc-types', authMiddleware, async (req, res, next) => {
+router.get('/top-ioc-types', async (req, res, next) => {
   try {
     const data = await Scan.aggregate([
       { $match: { status: 'complete' } },

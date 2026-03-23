@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Outlet, NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+
 import { useTheme } from '../../context/ThemeContext';
 import { useToast } from '../../context/ToastContext';
 import styles from './AppLayout.module.scss';
@@ -19,7 +19,7 @@ export default function AppLayout() {
   const [expanded, setExpanded] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth <= MOBILE_BREAKPOINT);
-  const { user, logout } = useAuth();
+  // No auth
   const { theme, cycleTheme, themes } = useTheme();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -70,18 +70,7 @@ export default function AppLayout() {
     setExpanded((open) => !open);
   };
 
-  const handleLogout = () => {
-    if (!user) {
-      toast.warn('No active session found.', 3000);
-      navigate('/login');
-      return;
-    }
 
-    logout();
-    setMobileOpen(false);
-    toast.success('Signed out successfully.', 2500);
-    navigate('/login');
-  };
 
   const sidebarClassName = [
     styles.sidebar,
@@ -138,18 +127,13 @@ export default function AppLayout() {
             <span className={styles.navLabel}>{themes[theme]?.label}</span>
           </button>
 
-          <div className={styles.userChip}>
-            <span className={`material-symbols-rounded ${styles.userIcon}`}>account_circle</span>
-            <div className={styles.userInfo}>
-              <span className={styles.userName}>{user?.username || 'Guest'}</span>
-              <span className={styles.userRole}>{user?.role || 'viewer'}</span>
+            <div className={styles.userChip}>
+              <span className={`material-symbols-rounded ${styles.userIcon}`}>account_circle</span>
+              <div className={styles.userInfo}>
+                <span className={styles.userName}>Guest Analyst</span>
+                <span className={styles.userRole}>Public Mode</span>
+              </div>
             </div>
-          </div>
-
-          <button type="button" className={styles.iconBtn} onClick={handleLogout} title="Sign out">
-            <span className="material-symbols-rounded">logout</span>
-            <span className={styles.navLabel}>Sign Out</span>
-          </button>
         </div>
       </aside>
 
@@ -182,8 +166,8 @@ export default function AppLayout() {
             <div className={styles.analystBlock}>
               <span className={`material-symbols-rounded ${styles.analystIcon}`}>verified_user</span>
               <div>
-                <strong>{user?.username || 'Analyst'}</strong>
-                <span>{user?.role || 'security operator'}</span>
+
+
               </div>
             </div>
           </div>

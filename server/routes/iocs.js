@@ -1,11 +1,11 @@
 const express = require('express');
 const Scan = require('../models/Scan');
-const { authMiddleware } = require('../middleware/auth');
+
 
 const router = express.Router();
 
 // GET /api/iocs — All IoCs across all scans
-router.get('/', authMiddleware, async (req, res, next) => {
+router.get('/', async (req, res, next) => {
   try {
     const { type, search, page = 1, limit = 50 } = req.query;
     const matchStage = { status: 'complete' };

@@ -10,7 +10,7 @@ const connectDB = require('./config/db');
 const { createBullBoard } = require('./config/bullBoard');
 
 // Route imports
-const authRoutes = require('./routes/auth');
+
 const scanRoutes = require('./routes/scans');
 const scoreRoutes = require('./routes/score');
 const iocRoutes = require('./routes/iocs');
@@ -65,7 +65,7 @@ app.use('/api/scans', scanLimiter);
 app.use('/captures', express.static(require('path').join(__dirname, 'captures')));
 
 // Routes
-app.use('/api/auth', authRoutes);
+
 app.use('/api/scans', scanRoutes);
 app.use('/api/score', scoreRoutes);
 app.use('/api/iocs', iocRoutes);

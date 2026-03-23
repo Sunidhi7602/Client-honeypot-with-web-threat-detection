@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { PageHeader, Btn } from '../../components/ui/UIComponents';
-import { useAuth } from '../../context/AuthContext';
+
 import { useTheme } from '../../context/ThemeContext';
 import { useToast } from '../../context/ToastContext';
 import styles from './Settings.module.scss';
@@ -17,7 +17,7 @@ const WEIGHT_LABELS = {
 };
 
 export default function Settings() {
-  const { user, updateSettings } = useAuth();
+  // No auth - settings local
   const { theme, setTheme, themes } = useTheme();
   const { toast } = useToast();
 
@@ -33,32 +33,12 @@ export default function Settings() {
   });
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    if (!user?.settings) return;
-    const s = user.settings;
-    if (s.riskWeights) setWeights({ ...DEFAULT_WEIGHTS, ...s.riskWeights });
-    if (s.scanDefaults) setScanDefaults(d => ({ ...d, ...s.scanDefaults }));
-    if (s.toastPreferences) setToastPrefs(d => ({ ...d, ...s.toastPreferences }));
-  }, [user]);
+
 
   const totalWeight = Object.values(weights).reduce((a, b) => a + b, 0);
 
-  const handleSave = async () => {
-    setSaving(true);
-    try {
-      await updateSettings({
-        theme,
-        virusTotalApiKey: vtKey || undefined,
-        riskWeights: weights,
-        scanDefaults,
-        toastPreferences: toastPrefs,
-      });
-      toast.success('Settings saved successfully');
-    } catch {
-      toast.error('Failed to save settings');
-    } finally {
-      setSaving(false);
-    }
+  const handleSave = () => {
+    toast.success('Settings updated locally (no backend save)');
   };
 
   const resetWeights = () => setWeights({ ...DEFAULT_WEIGHTS });

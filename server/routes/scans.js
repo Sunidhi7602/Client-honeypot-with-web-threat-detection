@@ -2,7 +2,7 @@ const express = require('express');
 const { body, validationResult } = require('express-validator');
 const { v4: uuidv4 } = require('uuid');
 const Scan = require('../models/Scan');
-const { authMiddleware } = require('../middleware/auth');
+
 const { addScanJob } = require('../services/scanQueue');
 const path = require('path');
 const fs = require('fs');
@@ -10,7 +10,7 @@ const fs = require('fs');
 const router = express.Router();
 
 // POST /api/scans — Submit URL for scanning
-router.post('/', authMiddleware, [
+router.post('/', [
   body('url').isURL({ require_protocol: true }).withMessage('Valid URL with protocol required'),
   body('scanType').optional().isIn(['quick', 'deep']),
   body('options.redirectDepth').optional().isInt({ min: 1, max: 20 }),
@@ -23,11 +23,11 @@ router.post('/', authMiddleware, [
     }
 
     const { url, scanType = 'quick', options = {} } = req.body;
-    const userDefaults = req.user.settings?.scanDefaults || {};
+    const userDefaults = { observationWindow: 30, userAgent: 'HoneyScan/1.0 (Research Scanner)', maxRedirectDepth: 5, enableSuricata: false };
 
     const scan = new Scan({
       url,
-      submittedBy: req.user._id,
+      submittedBy: null,
       scanType,
       status: 'queued',
       options: {
@@ -47,7 +47,7 @@ router.post('/', authMiddleware, [
       url,
       scanType,
       options: scan.options,
-      riskWeights: req.user.settings?.riskWeights,
+      riskWeights: { scriptCount: 0.25, redirectCount: 0.20, hiddenIframes: 0.20, downloadAttempts: 0.15, domMutationRate: 0.10, externalScripts: 0.10 },
     });
 
     res.status(202).json({
@@ -61,7 +61,7 @@ router.post('/', authMiddleware, [
 });
 
 // GET /api/scans — List scans (paginated)
-router.get('/', authMiddleware, async (req, res, next) => {
+router.get('/', async (req, res, next) => {
   try {
     const {
       page = 1,
@@ -107,7 +107,7 @@ router.get('/', authMiddleware, async (req, res, next) => {
 });
 
 // GET /api/scans/recent — Recent scans for live dashboard feed
-router.get('/recent', authMiddleware, async (req, res, next) => {
+router.get('/recent', async (req, res, next) => {
   try {
     const scans = await Scan.find({ status: { $in: ['complete', 'scanning'] } })
       .sort({ submittedAt: -1 })
@@ -120,7 +120,7 @@ router.get('/recent', authMiddleware, async (req, res, next) => {
 });
 
 // GET /api/scans/:id — Get single scan with full details
-router.get('/:id', authMiddleware, async (req, res, next) => {
+router.get('/:id', async (req, res, next) => {
   try {
     const scan = await Scan.findById(req.params.id)
       .select('-errorStack');
@@ -135,7 +135,7 @@ router.get('/:id', authMiddleware, async (req, res, next) => {
 });
 
 // GET /api/scans/:id/dom — Get DOM snapshots (heavy, separate endpoint)
-router.get('/:id/dom', authMiddleware, async (req, res, next) => {
+router.get('/:id/dom', async (req, res, next) => {
   try {
     const scan = await Scan.findById(req.params.id)
       .select('domSnapshotBefore domSnapshotAfter url status');
@@ -150,7 +150,7 @@ router.get('/:id/dom', authMiddleware, async (req, res, next) => {
 });
 
 // DELETE /api/scans/:id
-router.delete('/:id', authMiddleware, async (req, res, next) => {
+router.delete('/:id', async (req, res, next) => {
   try {
     const scan = await Scan.findByIdAndDelete(req.params.id);
     if (!scan) return res.status(404).json({ error: 'Scan not found' });
@@ -167,7 +167,7 @@ router.delete('/:id', authMiddleware, async (req, res, next) => {
 });
 
 // POST /api/scans/bulk-delete
-router.post('/bulk-delete', authMiddleware, async (req, res, next) => {
+router.post('/bulk-delete', async (req, res, next) => {
   try {
     const { ids } = req.body;
     if (!Array.isArray(ids) || ids.length === 0) {
@@ -181,7 +181,7 @@ router.post('/bulk-delete', authMiddleware, async (req, res, next) => {
 });
 
 // GET /api/scans/:id/export — Export scan as JSON
-router.get('/:id/export', authMiddleware, async (req, res, next) => {
+router.get('/:id/export', async (req, res, next) => {
   try {
     const scan = await Scan.findById(req.params.id);
     if (!scan) return res.status(404).json({ error: 'Scan not found' });
@@ -195,7 +195,7 @@ router.get('/:id/export', authMiddleware, async (req, res, next) => {
 });
 
 // POST /api/scans/export-csv — Bulk export
-router.post('/export-csv', authMiddleware, async (req, res, next) => {
+router.post('/export-csv', async (req, res, next) => {
   try {
     const { ids } = req.body;
     const query = ids?.length ? { _id: { $in: ids } } : {};
@@ -215,7 +215,7 @@ router.post('/export-csv', authMiddleware, async (req, res, next) => {
 });
 
 // POST /api/scans/:id/ioc/:iocId/virustotal — Trigger VT lookup
-router.post('/:id/ioc/:iocId/virustotal', authMiddleware, async (req, res, next) => {
+router.post('/:id/ioc/:iocId/virustotal', async (req, res, next) => {
   try {
     const { virusTotalLookup } = require('../services/virusTotalService');
     const scan = await Scan.findById(req.params.id);
@@ -224,9 +224,9 @@ router.post('/:id/ioc/:iocId/virustotal', authMiddleware, async (req, res, next)
     const ioc = scan.iocs.id(req.params.iocId);
     if (!ioc) return res.status(404).json({ error: 'IoC not found' });
 
-    const apiKey = req.user.settings?.virusTotalApiKey;
+    const apiKey = process.env.VIRUSTOTAL_API_KEY || '';
     if (!apiKey) {
-      return res.status(400).json({ error: 'VirusTotal API key not configured in settings' });
+      return res.status(400).json({ error: 'VirusTotal API key not configured (env VIRUSTOTAL_API_KEY)' });
     }
 
     const result = await virusTotalLookup(ioc.value, ioc.type, apiKey);
